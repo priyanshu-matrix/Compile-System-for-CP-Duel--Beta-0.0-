@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  cpp-judge:
+    image: cpp-judge:latest  # or build from Dockerfile below
+    container_name: cpp_judge_sandbox
+    build:
+      context: .
+      dockerfile: Dockerfile  # adjust if your Dockerfile has a different name
+    restart: no
+    tty: true
+
+    security_opt:
+      - no-new-privileges:true
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_ADMIN  # Needed for isolate sandboxing
+
+    tmpfs:
+      - /tmp
+      - /var/local/lib/isolate  # isolate's working area
+
+    read_only: true
+
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 1.0
+
+    volumes:
+      - ./app:/app:ro  # Optional: mount source read-only if needed
+
+    working_dir: /app
+    user: judge  # matches your Dockerfile user
+
+    command: ["python3", "run_judge.py"]  # Or whatever your main script is
